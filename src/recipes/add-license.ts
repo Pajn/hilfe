@@ -1,5 +1,4 @@
 import {Recipe} from '../entities'
-import {Project} from '../hilfer-lib'
 
 const licenseTexts: {
   [license: string]: (year: number, copytightHolder: string) => string
@@ -267,7 +266,7 @@ export const recipe: Recipe = {
       type: 'input',
       name: 'copyrightHolder',
       message: 'Copyright Holder',
-      default: async (project: Project) =>
+      default: async project =>
         (await project.getSetting('copyrightHolder')) ||
         (await project.getSetting('name')),
     },
@@ -281,7 +280,7 @@ export const recipe: Recipe = {
       await project.addFile(
         'LICENSE',
         licenseTexts[licenses[0]](year, copyrightHolder),
-        {stategy: 'overwrite'},
+        {strategy: 'overwrite'},
       )
       await project.patchJson('package.json', packageJson => {
         packageJson.license = spdx[licenses[0]]
@@ -291,7 +290,7 @@ export const recipe: Recipe = {
         await project.addFile(
           `LICENSE-${license.toUpperCase()}`,
           licenseTexts[license](year, copyrightHolder),
-          {stategy: 'overwrite'},
+          {strategy: 'overwrite'},
         )
         await project.patchJson('package.json', packageJson => {
           packageJson.license = `(${licenses

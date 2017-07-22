@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
-import {recipe as prettier} from './recipes/add-prettier'
+import {recipe as coveralls} from './recipes/add-coveralls'
 import {recipe as license} from './recipes/add-license'
+import {recipe as prettier} from './recipes/add-prettier'
+import {recipe as travis} from './recipes/add-travis'
 import {Question, Recipe} from './entities'
 import {Project} from './hilfer-lib'
 import {realpath} from 'fs-extra'
@@ -45,7 +47,7 @@ const mapQuestion = (project: Project) => (
   )
 
 function loadRecipes(_: Project): Recipe[] {
-  return [prettier, license]
+  return [license, prettier, travis, coveralls]
 }
 
 async function main() {

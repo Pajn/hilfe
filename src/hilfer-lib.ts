@@ -1,7 +1,17 @@
 import chalk from 'chalk'
 import {resolve, dirname} from 'path'
-import {pathExists, writeFile, readJson, writeJson, ensureDir} from 'fs-extra'
+import {
+  pathExists,
+  readFile,
+  writeFile,
+  readJson,
+  writeJson,
+  ensureDir,
+} from 'fs-extra'
 import spawn from 'cross-spawn-promise'
+import yaml from 'js-yaml'
+
+export type Awaitable<T> = T | Promise<T>
 
 export class Project {
   constructor(private rootDir: string) {}
@@ -23,8 +33,17 @@ export class Project {
     return pathExists(this.relativePath(path))
   }
 
+  async readFile(path: string): Promise<string> {
+    return readFile(this.relativePath(path), 'utf-8')
+  }
+
   async readJson(path: string): Promise<any> {
     return readJson(this.relativePath(path))
+  }
+
+  async readYaml(path: string): Promise<any> {
+    const content = await this.readFile(path)
+    return yaml.safeLoad(content)
   }
 
   async patchJson(
@@ -52,18 +71,62 @@ export class Project {
     await writeJson(path, content, {spaces: 2})
   }
 
+  async patchYaml(
+    path: string,
+    patcher: (yaml: any) => void,
+    {defaultYaml, mkdir = true}: {defaultYaml?: any; mkdir?: boolean} = {},
+  ): Promise<void> {
+    const exists = await pathExists(this.relativePath(path))
+
+    let content
+    if (exists) {
+      content = await this.readYaml(path)
+    } else {
+      if (!defaultYaml) throw `File ${path} does not exist`
+      content = defaultYaml
+    }
+
+    patcher(content)
+
+    if (mkdir && !exists) {
+      await ensureDir(dirname(path))
+    }
+
+    await this.addYamlFile(path, content, {strategy: 'overwrite'})
+  }
+
   async addFile(
     path: string,
     content: string,
-    {stategy = 'error'}: {stategy?: 'overwrite' | 'error' | 'ignore'} = {},
+    {strategy = 'error'}: {strategy?: 'overwrite' | 'error' | 'ignore'} = {},
   ): Promise<void> {
     path = this.relativePath(path)
-    const exists = await pathExists(path)
 
-    if (exists && stategy === 'ignore') return
-    if (exists && stategy === 'error') throw `File ${path} exists`
+    if (strategy !== 'overwrite') {
+      const exists = await pathExists(path)
+
+      if (exists && strategy === 'ignore') return
+      if (exists && strategy === 'error') throw `File ${path} exists`
+    }
 
     await writeFile(path, content)
+  }
+
+  async addYamlFile(
+    path: string,
+    content: any,
+    options: {strategy?: 'overwrite' | 'error' | 'ignore'} = {},
+  ): Promise<void> {
+    const stringified = yaml.safeDump(content)
+    await this.addFile(path, stringified, options)
+  }
+
+  async updateFile(
+    path: string,
+    updater: (content: string) => Awaitable<string>,
+  ): Promise<void> {
+    const content = await this.readFile(path)
+    await writeFile(path, await updater(content))
   }
 
   async npmAdd(

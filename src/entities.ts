@@ -37,7 +37,12 @@ export interface Question {
    * Default value(s) to use if nothing is entered, or a function that returns the default value(s).
    * If defined as a function, the first parameter will be the current inquirer session answers.
    */
-  default?: any | ((project: Project, answers: Answers) => Awaitable<any>)
+  default?:
+    | object
+    | boolean
+    | number
+    | string
+    | ((project: Project, answers: Answers) => Awaitable<any>)
   /**
    * Choices array or a function returning a choices array. If defined as a function,
    * the first parameter will be the current inquirer session answers.
