@@ -50,8 +50,8 @@ export interface Question {
    * (to save in the answers hash). Values can also be a Separator.
    */
   choices?:
-    | ChoiceType[]
-    | ((project: Project, answers: Answers) => Awaitable<ChoiceType[]>)
+    | Array<ChoiceType>
+    | ((project: Project, answers: Answers) => Awaitable<Array<ChoiceType>>)
   /**
    * Receive the user input and should return true if the value is valid, and an error message (String)
    * otherwise. If false is returned, a default error message is provided.
@@ -85,6 +85,6 @@ export interface Question {
 export type Recipe = {
   name: string
   description: string
-  arguments: Question[]
+  arguments: Array<Question>
   run: (args: any, project: Project) => void | Promise<void>
 }

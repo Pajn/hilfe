@@ -1,18 +1,19 @@
 #!/usr/bin/env node
 
+import program from 'commander'
+import {realpath} from 'fs-extra'
+import {
+  Answers,
+  Question as InquirerQuestion,
+  createPromptModule,
+} from 'inquirer'
+import {Question, Recipe} from './entities'
+import {Project} from './hilfer-lib'
 import {recipe as coveralls} from './recipes/add-coveralls'
 import {recipe as license} from './recipes/add-license'
 import {recipe as prettier} from './recipes/add-prettier'
 import {recipe as travis} from './recipes/add-travis'
-import {Question, Recipe} from './entities'
-import {Project} from './hilfer-lib'
-import {realpath} from 'fs-extra'
-import program from 'commander'
-import {
-  createPromptModule,
-  Question as InquirerQuestion,
-  Answers,
-} from 'inquirer'
+import {recipe as tslint} from './recipes/add-tslint'
 
 const mapQuestion = (project: Project) => (
   question: Question,
@@ -46,8 +47,8 @@ const mapQuestion = (project: Project) => (
     },
   )
 
-function loadRecipes(_: Project): Recipe[] {
-  return [license, prettier, travis, coveralls]
+function loadRecipes(_: Project): Array<Recipe> {
+  return [license, prettier, tslint, travis, coveralls]
 }
 
 async function main() {
@@ -68,12 +69,16 @@ async function main() {
     console.log('Avalible recipes:')
     console.log('')
     recipes.forEach(recipe => {
-      console.log(`  ${recipe.name}     - ${recipe.description}`)
+      console.log(`  ${recipe.name.padEnd(20, ' ')} - ${recipe.description}`)
     })
     process.exit(0)
   }
 
   const [recipeName] = program.args
+
+  if (!recipeName) {
+    return program.outputHelp()
+  }
 
   const recipe = recipes.find(recipe => recipe.name === recipeName)
 

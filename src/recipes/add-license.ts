@@ -272,7 +272,7 @@ export const recipe: Recipe = {
     },
   ],
   async run(
-    {licenses, copyrightHolder}: {licenses: string[]; copyrightHolder: string},
+    {licenses, copyrightHolder}: {licenses: Array<string>; copyrightHolder: string},
     project,
   ) {
     const year = new Date().getFullYear()
